@@ -2,8 +2,8 @@
 #### HTML DOM Tree Leaf Structure Identification Package
 
 
-> you become who you surround yourself with
-
+> <em>"You become who you surround yourself with."</em> 
+- Someone Important
 
 <p align="center">
   <img src="docs/logo.webp" alt="WebLeaf Logo" style="width: 50%;">

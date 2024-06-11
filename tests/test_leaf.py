@@ -48,3 +48,17 @@ def test_leaf_depths(depth, expected):
     element = soup.find("p")
     leaf = Leaf().from_element(element, depth)
     assert str(leaf) == expected, "leaf was not as expected"
+
+
+def test_compare():
+    link = soup.find("a")
+    desc = soup.find("p")
+
+    link_leaf = Leaf().from_element(link, 4)
+    assert len(str(link_leaf))
+
+    desc_leaf = Leaf().from_element(desc, 4)
+    assert len(str(desc_leaf))
+
+    compare = desc_leaf.compare(link_leaf)
+    assert compare < 1.0

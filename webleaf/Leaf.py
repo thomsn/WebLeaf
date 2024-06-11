@@ -33,5 +33,13 @@ class Leaf(list):
             self.append(str_hash)
         return self
 
+    def compare(self, other):
+        diffs = set(self).symmetric_difference(set(other))
+        score = 1.0
+        for diff in diffs:
+            factor = (1.0 - pow(2, -len(diff)))
+            score = score * factor
+        return score
+
     def __str__(self):
         return " ".join(self)

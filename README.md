@@ -1,13 +1,11 @@
 # WebLeaf Package
 #### HTML DOM Tree Leaf Structure Identification Package
 
-
-> <em>"You become who you surround yourself with."</em> 
-- Someone Important
-
 <p align="center">
   <img src="docs/logo.webp" alt="WebLeaf Logo" style="width: 50%;">
 </p>
+> <em>"You become who you surround yourself with."</em> 
+src: Someone Important
 
 # Description
 Websites are generally built as a composition of components. If you understand the structure of a given website then you

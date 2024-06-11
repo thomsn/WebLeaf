@@ -1,5 +1,5 @@
 import pytest
-from webleaf.Leaf import Leaf
+from webleaf import Leaf
 from bs4 import BeautifulSoup
 
 

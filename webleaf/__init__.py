@@ -1,2 +1,2 @@
 """HTML DOM Tree Leaf Structure Identification Package"""
-from Leaf import Leaf
+from .Leaf import Leaf

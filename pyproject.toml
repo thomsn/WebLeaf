@@ -8,14 +8,13 @@ description = "HTML DOM Tree Leaf Structure Identification Package"
 authors = [{name = "Matthew Thomson", email = "m7homson@gmail.com"}]
 
 dependencies = [
-    "beautifulsoup4"
+    "beautifulsoup4==4.12.3"
 ]
 
-license = "MIT"
+license = {file = "LICENSE"}
 readme = "README.md"
-homepage = "https://thomsn.github.io/WebLeaf/webleaf.html"
-repository = "https://github.com/thomsn/WebLeaf"
-documentation = "https://thomsn.github.io/WebLeaf/webleaf.html"
+
+
 keywords = [
     "dom",
     "web",
@@ -27,3 +26,8 @@ keywords = [
     "structure",
     "embedding"
 ]
+
+[project.urls]
+homepage = "https://thomsn.github.io/WebLeaf/webleaf.html"
+repository = "https://github.com/thomsn/WebLeaf"
+documentation = "https://thomsn.github.io/WebLeaf/webleaf.html"

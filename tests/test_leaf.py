@@ -10,6 +10,17 @@ example = open(EXAMPLE_PATH).read()
 soup = BeautifulSoup(example, "html.parser")
 
 
+def test_leaf_from_element():
+    link = soup.find("p")
+    leaf = Leaf().from_element(link, 3)
+    assert leaf == {"01", "031", "032"}
+
+
+def test_leaf_from_str():
+    leaf = Leaf().from_str("01 02 03 1032")
+    assert leaf == {"01", "02", "03", "1032"}
+
+
 def test_leaf_equal():
     descriptions = list(soup.find_all("p"))
     assert len(descriptions) == 3, "soup wasn't loaded correctly."
@@ -46,11 +57,12 @@ depths = [
 @pytest.mark.parametrize("depth,expected", depths)
 def test_leaf_depths(depth, expected):
     element = soup.find("p")
+    expected_leaf = Leaf().from_str(expected)
     leaf = Leaf().from_element(element, depth)
-    assert str(leaf) == expected, "leaf was not as expected"
+    assert leaf == expected_leaf, "leaf was not as expected"
 
 
-def test_compare():
+def test_leaf_compare():
     link = soup.find("a")
     desc = soup.find("p")
 

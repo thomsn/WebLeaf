@@ -1,12 +1,11 @@
 from bs4 import Tag
-import unicodedata
-from html import unescape
+
+from webleaf.bfs_utils import element_text
 
 
-class Leaf(list):
+class Leaf(set):
     def from_element(self, element: Tag, depth=5):
         stack = [(element, [])]
-        paths = []
         while len(stack):
             tag, path = stack.pop(0)
             if len(path) > depth:
@@ -21,20 +20,19 @@ class Leaf(list):
             else:  # going down
                 for index, child in enumerate(tag.findChildren(recursive=False)):
                     stack.append((child, path + [index + 1]))
+            if element_text(tag) and tag.name != "script" and path:
+                str_hash = "".join(str(edge) for edge in path)
+                self.add(str_hash)
+        return self
 
-            text = tag.find(text=True, recursive=False)
-            if text:
-                text = unescape(text.text)
-                text = unicodedata.normalize('NFKC', text).strip()
-            if text and tag.name != "script" and path:
-                paths.append(path)
-        for path in paths:
-            str_hash = "".join(str(edge) for edge in path)
-            self.append(str_hash)
+    def from_str(self, string):
+        for path in string.split(" "):
+            if path:
+                self.add(path)
         return self
 
     def compare(self, other):
-        diffs = set(self).symmetric_difference(set(other))
+        diffs = self.symmetric_difference(other)
         score = 1.0
         for diff in diffs:
             factor = (1.0 - pow(2, -len(diff)))

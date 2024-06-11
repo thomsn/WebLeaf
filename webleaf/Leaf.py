@@ -2,7 +2,7 @@ from bs4 import Tag
 from webleaf.bfs_utils import element_text
 
 
-class Leaf(set):
+class Leaf(set[str]):
     """An HTML element as described by a set of paths to its closest neighbors"""
     def from_element(self, tag: Tag, depth: int = 5):
         """
@@ -11,7 +11,7 @@ class Leaf(set):
         element.
         :param tag: the BeautifulSoup tag
         :param depth: the integer depth to traverse within the tree
-        :return: a Leaf
+        :return: a Leaf()
         """
         stack = [(tag, [])]
         while len(stack):
@@ -35,9 +35,9 @@ class Leaf(set):
 
     def from_str(self, string: str):
         """
-        Create a Leaf from a string
+        Create a Leaf()® from a string.
         :param string: the Leaf in string format
-        :return: a Leaf
+        :return: a Leaf()
         """
         for path in string.split(" "):
             if path:
@@ -48,7 +48,7 @@ class Leaf(set):
         """
         Compare two Leaves and produce a score. Closer neighbors are weighted exponentially more than further neighbors.
         :param other: the Leaf to compare to
-        :return: a score between 1.0 and 0.0 representing how similar they are
+        :return: a score between 1.0 and 0.0 representing how similar the Leaves are.
         """
         diffs = self.symmetric_difference(other)
         score = 1.0
@@ -59,4 +59,8 @@ class Leaf(set):
         return score
 
     def __str__(self):
+        """
+        Serialize a Leaf to a string.
+        :return: String representation of the Leaf()
+        """
         return " ".join(self)

@@ -13,12 +13,12 @@ soup = BeautifulSoup(example, "html.parser")
 def test_leaf_from_element():
     link = soup.find("p")
     leaf = Leaf().from_element(link, 3)
-    assert leaf == {"01", "031", "032"}
+    assert leaf == {"0.1", "0.3.1", "0.3.2"}
 
 
 def test_leaf_from_str():
-    leaf = Leaf().from_str("01 02 03 1032")
-    assert leaf == {"01", "02", "03", "1032"}
+    leaf = Leaf().from_str("0.1 0.2 0.3 1.0.3.2")
+    assert leaf == {"0.1", "0.2", "0.3", "1.0.3.2"}
 
 
 def test_leaf_equal():
@@ -47,10 +47,10 @@ def test_leaf_unique():
 
 depths = [
     (1, ""),
-    (2, "01"),
-    (3, "01 031 032"),
-    (4, "01 031 032 0021 0031"),
-    (5, "01 031 032 0021 0031 00221 00231 00232 00321 00331 00332"),
+    (2, "0.1"),
+    (3, "0.1 0.3.1 0.3.2"),
+    (4, "0.1 0.3.1 0.3.2 0.0.2.1 0.0.3.1"),
+    (5, "0.1 0.3.1 0.3.2 0.0.2.1 0.0.3.1 0.0.2.2.1 0.0.2.3.1 0.0.2.3.2 0.0.3.2.1 0.0.3.3.1 0.0.3.3.2"),
 ]
 
 

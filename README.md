@@ -4,7 +4,9 @@
 <p align="center">
   <img src="docs/logo.webp" alt="WebLeaf Logo" style="width: 50%;">
 </p>
-> <em>"You become who you surround yourself with."</em> 
+
+<em>"You become who you surround yourself with."</em> 
+
 src: Someone Important
 
 # Description

@@ -2,7 +2,7 @@
 #### HTML DOM Tree Leaf Structure Identification Package
 
 <p align="center">
-  <img src="docs/logo.webp" alt="WebLeaf Logo" style="width: 50%;">
+  <img src="https://github.com/thomsn/WebLeaf/raw/main/docs/logo.webp" alt="WebLeaf Logo" style="width: 50%;">
 </p>
 
 <em>"You become who you surround yourself with."</em> 

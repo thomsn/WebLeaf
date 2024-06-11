@@ -18,7 +18,4 @@ set representation of an element's neighbors. This set can then be used to devel
 
 # Concepts
 
-
-### Tree
-
 ### Leaf

@@ -44,7 +44,6 @@ neighbour it will trace the relative path using 0 to represent upwards (parent) 
 child index of an element. 
 ```html
 <!doctype html>
-</head>
     <body>
         <div>                                                                                        
 <!-- 0.1 = 1st child --> <h1>Example Domain</h1>                                                            

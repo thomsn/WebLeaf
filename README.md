@@ -47,11 +47,11 @@ child index of an element.
 </head>
     <body>
         <div>                                                                                        
-            <h1>Example Domain</h1>                                                            <!-- 0.1 = 1st child -->
-            <p>This domain is for use in illustrative examples in documents....     </p>       <!-- 0.2 = 2nd child -->
-            <p>                                                                                <!--   0 = parent    -->
-                <a href="https://www.iana.org/domains/example">More information...</a>         <!--starting element -->
-            </p>
+<!-- 0.1 = 1st child --> <h1>Example Domain</h1>                                                            
+<!-- 0.2 = 2nd child --> <p>This domain is for use in illustrative examples in documents....     </p>
+<!--   0 = parent    --> <p>                                                                                
+<!--starting element -->     <a href="https://www.iana.org/domains/example">More information...</a>
+                         </p>
         </div>
     </body>
 </html>

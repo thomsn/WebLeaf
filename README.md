@@ -37,6 +37,25 @@ output
 ```bash
 0.1 0.2
 ```
+### Comparing Leaves
+Leaves can be compared with each other, so you can find similar elements within the document. 
+```python
+from webleaf import Leaf
+
+leaf_one = Leaf().from_str("0.1 0.2")
+leaf_two = Leaf().from_str("0.2 0.1")
+leaf_three = Leaf().from_str("0.1 0.2 0.1.3.4.5.7")
+
+print("compare leaf one and two with equality", leaf_one == leaf_two)
+print("compare leaf one and three with equality", leaf_one == leaf_three)
+print("compare leaf one and three with score", leaf_one.compare(leaf_three))
+```
+output
+```bash
+compare leaf one and two with equality True
+compare leaf one and three with equality False
+compare leaf one and three with score 0.984375
+```
 
 ### How it works
 Here we will walk through the creation of a Leaf. The link "a" element Leaf of depth=3 has two neighbors [0.1] and [0.2] . 

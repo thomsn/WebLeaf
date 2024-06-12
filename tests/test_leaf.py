@@ -1,9 +1,13 @@
 import pytest
 from webleaf import Leaf
 from bs4 import BeautifulSoup
+import os
 
 
-EXAMPLE_PATH = "example.html"
+dirname = os.path.dirname(__file__)
+
+
+EXAMPLE_PATH = os.path.join(dirname, "example.html")
 
 
 example = open(EXAMPLE_PATH).read()

@@ -15,6 +15,7 @@ To install the current release
 pip install webleaf
 ```
 ### Basic
+Here we will compute the Leaf for the link "a" element in example.com
 ```python
 from webleaf import Leaf
 from bs4 import BeautifulSoup
@@ -55,5 +56,11 @@ child index of an element.
     </body>
 </html>
 ```
+
+<p align="center">
+  <img src="https://github.com/thomsn/WebLeaf/raw/main/docs/WebLeaf.png" alt="WebLeaf How it Works" style="width: 100%;">
+</p>
+
+In the above you can see how WebLeaf encoded the tree structure around the chosen element "a". 
 
 <em>"You become who you surround yourself with."</em> src: Someone Important

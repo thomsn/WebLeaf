@@ -58,9 +58,10 @@ child index of an element.
 ```
 
 <p align="center">
-  <img src="https://github.com/thomsn/WebLeaf/raw/main/docs/WebLeaf.png" alt="WebLeaf How it Works" style="width: 100%;">
+  <img src="https://github.com/thomsn/WebLeaf/raw/main/docs/WebLeaf.png" alt="WebLeaf How it Works" style="width: 80%;">
 </p>
 
-In the above you can see how WebLeaf encoded the tree structure around the chosen element "a". 
+In the above DOM tree you can see how WebLeaf encoded the tree structure around the chosen element "a". This Leaf can 
+then be used to locate the link.
 
 <em>"You become who you surround yourself with."</em> src: Someone Important

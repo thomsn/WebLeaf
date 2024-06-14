@@ -26,11 +26,11 @@ class Leaf(dict[str, str]):
             parent = tag.getparent()
             if parent is not None and going_up:
                 stack.append((parent, path + [".."]))
-                for index, sibling in enumerate(parent):
+                for sibling in parent:
                     if tree.getpath(sibling) != tree.getpath(tag):
                         stack.append((sibling, path + ['..', os.path.basename(tree.getpath(sibling))]))
             else:  # going down
-                for index, child in enumerate(tag):
+                for child in tag:
                     stack.append((child, path + [os.path.basename(tree.getpath(child))]))
             if path[-1] != "." and tag.text and tag.tag != "script" and tag.text.strip():
                 str_hash = "/".join(str(edge) for edge in path)
@@ -81,9 +81,10 @@ class Leaf(dict[str, str]):
             if path in self and path in other and self[path] != other[path]:
                 deduction += 0.5
 
-            factor = (1.0 - (pow(2, - depth) * deduction))
-            score = score * factor
-        return score
+            factor = pow(4, - depth) * deduction
+            print(depth, path, factor)
+            score = score - factor
+        return max(score, 0.0)
 
     def __str__(self):
         """

@@ -6,7 +6,7 @@
 #### HTML DOM Tree Leaf Structure Identification Python Package 
 Websites are generally built as a composition of components. If you understand the structure of a given website then you
 can better understand the data within it. WebLeaf helps you classify elements within the DOM tree by creating a 
-set representation of an element's neighbors. This set can then be used to develop robust data scraping logic. WebLeaf 
+dict representation of an element's neighbors. This dict can then be used to develop robust data scraping logic. WebLeaf 
 is an alternative to CSS selectors and XPaths which can often fail. 
 
 ### Install
@@ -18,7 +18,7 @@ pip install webleaf
 Here we will compute the Leaf for the link "a" element in example.com
 ```python
 from webleaf import Leaf
-from bs4 import BeautifulSoup
+from lxml import etree
 
 def get_html():
     import requests
@@ -27,50 +27,48 @@ def get_html():
 
 
 html = get_html()
-soup = BeautifulSoup(html)
-element = soup.find("a")
+root = etree.HTML(html)
+tree = etree.ElementTree(root)
+element = tree.findall(".//a")[0]
 
-leaf = Leaf().from_element(element, depth=3)
+leaf = Leaf().from_element(tree, element, depth=3)
 print(leaf)
 ```
 output
-```bash
-0.1 0.2
+```json
+{"./../../h1": "Example Domain", "./../../p[1]": "This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}
 ```
 ### Comparing Leaves
 Leaves can be compared with each other, so you can find similar elements within the document. 
 ```python
 from webleaf import Leaf
 
-leaf_one = Leaf().from_str("0.1 0.2")
-leaf_two = Leaf().from_str("0.2 0.1")
-leaf_three = Leaf().from_str("0.1 0.2 0.1.3.4.5.7")
+leaf_one = Leaf({"./../../h1": "Example Domain", "./../../p[1]": "example description"})
+leaf_two = Leaf({"./../../h1": "Example Domain", "./../../p[1]": "example description modified"})
+leaf_three = Leaf({"./../h1": "Example Domain", "./../../p[3]": "example description"})
 
-print("compare leaf one and two with equality", leaf_one == leaf_two)
-print("compare leaf one and three with equality", leaf_one == leaf_three)
-print("compare leaf one and three with score", leaf_one.compare(leaf_three))
+print("compare leaf one and two", leaf_one.compare(leaf_two))
+print("compare leaf one and three", leaf_one.compare(leaf_three))
 ```
 output
 ```bash
-compare leaf one and two with equality True
-compare leaf one and three with equality False
-compare leaf one and three with score 0.984375
+compare leaf one and two 0.9375
+compare leaf one and three 0.50244140625
 ```
 
 ### How it works
-Here we will walk through the creation of a Leaf. The link "a" element Leaf of depth=3 has two neighbors [0.1] and [0.2] . 
-WebLeaf will start from the element and breadth first search for a neighbouring element with text. When it finds a 
-neighbour it will trace the relative path using 0 to represent upwards (parent) and 1,2,3... to represent the 1-indexed 
-child index of an element. 
+Here we will walk through the creation of a Leaf. The link "a" element Leaf of depth=3 has two neighbors "./../../h1" and 
+ "./../../p[1]". WebLeaf will start from the element and breadth first search for a neighbouring element with text. When it finds a 
+neighbour it will create a relative XPath to it. 
 ```html
 <!doctype html>
     <body>
-        <div>                                                                                        
-<!-- 0.1 = 1st child --> <h1>Example Domain</h1>                                                            
-<!-- 0.2 = 2nd child --> <p>This domain is for use in illustrative examples in documents....     </p>
-<!--   0 = parent    --> <p>                                                                                
-<!--starting element -->     <a href="https://www.iana.org/domains/example">More information...</a>
-                         </p>
+        <div>
+            <h1>Example Domain</h1>                                                             <!--  ./../../h1  -->
+            <p>This domain is for use in illustrative examples in documents....     </p>        <!-- ./../../p[1] -->
+            <p>
+                <a href="https://www.iana.org/domains/example">More information...</a>          <!--    start     -->
+            </p>
         </div>
     </body>
 </html>

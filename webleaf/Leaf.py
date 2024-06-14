@@ -1,60 +1,73 @@
-from bs4 import Tag
-from webleaf.bfs_utils import element_text
+import json
+
+from lxml.html import Element
+from lxml.cssselect import CSSSelector
+import os
 
 
-class Leaf(set[str]):
+class Leaf(dict[str, str]):
     """An HTML element as described by a set of paths to its closest neighbors"""
-    def from_element(self, tag: Tag, depth: int = 5):
+    def from_element(self, tree, element: Element, depth: int = 5):
         """
-        Create a Leaf object from a BeautifulSoup tag to a specified depth. This walks the tree in a breadth first
+        Create a Leaf object from a LXML element to a specified depth. This walks the tree in a breadth first
         search. The path is encoded with 0 representing up in the tree; 1,2,3 ... representing the 1-indexed index of an
         element.
-        :param tag: the BeautifulSoup tag
+        :param tree: the lxml etree
+        :param element: the lxml element
         :param depth: the integer depth to traverse within the tree
         :return: a Leaf()
         """
-        stack = [(tag, [])]
+        stack = [(element, ["."])]
         while len(stack):
             tag, path = stack.pop(0)
-            if len(path) > depth:
+            if len(path) - 1 > depth:
                 continue
-            going_up = not path or path[-1] == 0
-            parent = tag.parent
-            if parent and going_up:
-                stack.append((parent, path + [0]))
-                for index, sibling in enumerate(parent.findChildren(recursive=False)):
-                    if sibling != tag:
-                        stack.append((sibling, path + [index + 1]))
+            going_up = path[-1] in [".", ".."]
+            parent = tag.getparent()
+            if parent is not None and going_up:
+                stack.append((parent, path + [".."]))
+                for index, sibling in enumerate(parent):
+                    if tree.getpath(sibling) != tree.getpath(tag):
+                        stack.append((sibling, path + ['..', os.path.basename(tree.getpath(sibling))]))
             else:  # going down
-                for index, child in enumerate(tag.findChildren(recursive=False)):
-                    stack.append((child, path + [index + 1]))
-            if element_text(tag) and tag.name != "script" and path:
-                str_hash = ".".join(str(edge) for edge in path)
-                self.add(str_hash)
+                for index, child in enumerate(tag):
+                    stack.append((child, path + [os.path.basename(tree.getpath(child))]))
+            if path[-1] != "." and tag.text and tag.tag != "script" and tag.text.strip():
+                str_hash = "/".join(str(edge) for edge in path)
+                self[str_hash] = tag.text
         return self
 
-    def from_str(self, string: str):
-        """
-        Create a Leaf()® from a string.
-        :param string: the Leaf in string format
-        :return: a Leaf()
-        """
-        for path in string.split(" "):
-            if path:
-                self.add(path)
-        return self
+    def from_xpath(self, tree, xpath, depth: int = 5):
+        elements = tree.xpath(xpath)
+        assert elements, f"no element found for xpath {xpath}"
+        return self.from_element(tree, elements[0], depth)
+
+    def from_css(self, tree, css, depth: int = 5):
+        xpath = CSSSelector(css).path
+        elements = tree.xpath(xpath)
+        assert elements, f"no element found for css {css}"
+        return self.from_element(tree, elements[0], depth)
 
     def compare(self, other) -> float:
         """
         Compare two Leaves and produce a score. Closer neighbors are weighted exponentially more than further neighbors.
+        Values that are different are slightly less
         :param other: the Leaf to compare to
         :return: a score between 1.0 and 0.0 representing how similar the Leaves are.
         """
-        diffs = self.symmetric_difference(other)
+
+        paths = set(self.keys()).union(set(other.keys()))
         score = 1.0
-        for diff in diffs:
-            depth = diff.count(".") + 1
-            factor = (1.0 - pow(2, - depth))
+
+        for path in paths:
+            depth = path.count("/")
+            deduction = 0.0
+            if bool(path in self) != bool(path in other):
+                deduction += 1.0
+            if path in self and path in other and self[path] != other[path]:
+                deduction += 0.5
+
+            factor = (1.0 - (pow(2, - depth) * deduction))
             score = score * factor
         return score
 
@@ -63,4 +76,4 @@ class Leaf(set[str]):
         Serialize a Leaf to a string.
         :return: String representation of the Leaf()
         """
-        return " ".join(self)
+        return json.dumps(self)

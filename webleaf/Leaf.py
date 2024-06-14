@@ -82,7 +82,6 @@ class Leaf(dict[str, str]):
                 deduction += 0.5
 
             factor = pow(4, - depth) * deduction
-            print(depth, path, factor)
             score = score - factor
         return max(score, 0.0)
 

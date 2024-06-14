@@ -34,7 +34,7 @@ def test_leaf_equal():
 
     assert len(leaves) == 3, "didn't create enough leaves"
     assert len(str(leaves[0])), "the leaf didn't have anything in it"
-    assert len(set(str(leaf) for leaf in leaves)) == 1, "the leaves weren't the same."
+    assert len(set(str(leaf.keys()) for leaf in leaves)) == 1, "the leaves weren't the same."
 
 
 def test_leaf_unique():

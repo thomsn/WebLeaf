@@ -29,9 +29,8 @@ def get_html():
 html = get_html()
 root = etree.HTML(html)
 tree = etree.ElementTree(root)
-element = tree.findall(".//a")[0]
 
-leaf = Leaf().from_element(tree, element, depth=3)
+leaf = Leaf().from_xpath(tree, xpath=".//a", depth=3)
 print(leaf)
 ```
 output

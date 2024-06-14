@@ -6,7 +6,7 @@ import os
 
 
 class Leaf(dict[str, str]):
-    """An HTML element as described by a set of paths to its closest neighbors"""
+    """An HTML element as described by a dict of paths to its closest neighbors"""
     def from_element(self, tree, element: Element, depth: int = 5):
         """
         Create a Leaf object from a LXML element to a specified depth. This walks the tree in a breadth first
@@ -37,12 +37,26 @@ class Leaf(dict[str, str]):
                 self[str_hash] = tag.text
         return self
 
-    def from_xpath(self, tree, xpath, depth: int = 5):
+    def from_xpath(self, tree, xpath: str, depth: int = 5):
+        """
+        Create a Leaf from a XPath.
+        :param tree: the lxml etree
+        :param xpath: the xpath string
+        :param depth: integer depth to build the Leaf,
+        :return: the Leaf.
+        """
         elements = tree.xpath(xpath)
         assert elements, f"no element found for xpath {xpath}"
         return self.from_element(tree, elements[0], depth)
 
     def from_css(self, tree, css, depth: int = 5):
+        """
+        Create a Leaf from a CSS selector.
+        :param tree: the lxml etree
+        :param css: the css string
+        :param depth: integer depth to build the Leaf,
+        :return: the Leaf.
+        """
         xpath = CSSSelector(css).path
         elements = tree.xpath(xpath)
         assert elements, f"no element found for css {css}"

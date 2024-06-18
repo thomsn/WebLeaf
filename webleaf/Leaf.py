@@ -91,3 +91,20 @@ class Leaf(dict[str, str]):
         :return: String representation of the Leaf()
         """
         return json.dumps(self)
+
+    def find(self, tree, depth: int = 5):
+        """
+        Inefficient find matching leaves.
+        :param tree: the lxml etree
+        :param depth: the depth to construct leaves for
+        :return: lxml element iterator
+        """
+        other_elements = []
+        for element in tree.iter():
+            other_leaf = Leaf().from_element(tree, element, depth)
+            compare = self.compare(other_leaf)
+            if element.text:
+                other_elements.append((compare, element, other_leaf))
+
+        for compare, element, leaf in sorted(other_elements, key=lambda x: x[0], reverse=True):
+            yield element

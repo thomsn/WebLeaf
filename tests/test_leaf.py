@@ -106,3 +106,12 @@ def test_leaf_css():
     expected = Leaf().from_element(tree, title)
     title_leaf = Leaf().from_css(tree, css)
     assert expected == title_leaf, "did not find css selector correctly"
+
+
+def test_leaf_find():
+    titles = tree.findall(".//h3")
+
+    for i, title_element in enumerate(Leaf().from_element(tree, titles[0]).find(tree)):
+        if i >= len(titles):
+            break
+        assert title_element.tag == "h3", "did not find titles correctly"

@@ -35,24 +35,28 @@ print(leaf)
 ```
 output
 ```json
-{"./../../h1": "Example Domain", "./../../p[1]": "This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}
+{
+  ".": {"path": ".", "tag": "a", "text": "More information..."}, 
+  "./../../h1": {"path": "./../../h1", "tag": "h1", "text": "Example Domain"}, 
+  "./../../p[1]": {"path": "./../../p[1]", "tag": "p", "text": "This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission."}
+}
 ```
 ### Comparing Leaves
 Leaves can be compared with each other, so you can find similar elements within the document. 
 ```python
 from webleaf import Leaf
 
-leaf_one = Leaf({"./../../h1": "Example Domain", "./../../p[1]": "example description"})
-leaf_two = Leaf({"./../../h1": "Example Domain", "./../../p[1]": "example description modified"})
-leaf_three = Leaf({"./../h1": "Example Domain", "./../../p[3]": "example description"})
+leaf_one = Leaf({".": {"path": ".", "tag": "a", "text": "Example Domain"}})
+leaf_two = Leaf({".": {"path": ".", "tag": "h1", "text": "Example Domain"}})
+leaf_three = Leaf({".": {"path": ".", "tag": "h2", "text": "Something else"}})
 
 print("compare leaf one and two", leaf_one.compare(leaf_two))
 print("compare leaf one and three", leaf_one.compare(leaf_three))
 ```
 output
 ```bash
-compare leaf one and two 0.9375
-compare leaf one and three 0.50244140625
+compare leaf one and two 0.875
+compare leaf one and three 0.75
 ```
 
 ### How it works
@@ -66,7 +70,7 @@ neighbour it will create a relative XPath to it.
             <h1>Example Domain</h1>                                                             <!--  ./../../h1  -->
             <p>This domain is for use in illustrative examples in documents....     </p>        <!-- ./../../p[1] -->
             <p>
-                <a href="https://www.iana.org/domains/example">More information...</a>          <!--    start     -->
+                <a href="https://www.iana.org/domains/example">More information...</a>          <!--       .      -->
             </p>
         </div>
     </body>

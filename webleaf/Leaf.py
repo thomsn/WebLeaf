@@ -3,10 +3,12 @@ import json
 from lxml.html import Element
 from lxml.cssselect import CSSSelector
 import os
+from webleaf.Neighbour import Neighbour
 
 
-class Leaf(dict[str, str]):
+class Leaf(dict[str, Neighbour]):
     """An HTML element as described by a dict of paths to its closest neighbors"""
+
     def from_element(self, tree, element: Element, depth: int = 5):
         """
         Create a Leaf object from a LXML element to a specified depth. This walks the tree in a breadth first
@@ -32,9 +34,9 @@ class Leaf(dict[str, str]):
             else:  # going down
                 for child in tag:
                     stack.append((child, path + [os.path.basename(tree.getpath(child))]))
-            if path[-1] != "." and tag.text and tag.tag != "script" and tag.text.strip():
+            if tag.text and tag.tag != "script" and tag.text.strip():
                 str_hash = "/".join(str(edge) for edge in path)
-                self[str_hash] = tag.text
+                self[str_hash] = Neighbour(path=str_hash, tag=tag.tag, text=tag.text)
         return self
 
     def from_xpath(self, tree, xpath: str, depth: int = 5):
@@ -78,10 +80,13 @@ class Leaf(dict[str, str]):
             deduction = 0.0
             if bool(path in self) != bool(path in other):
                 deduction += 1.0
-            if path in self and path in other and self[path] != other[path]:
-                deduction += 0.5
 
-            factor = pow(4, - depth) * deduction
+            if path in self and path in other:
+                for aspect in ['tag', 'text']:
+                    if self[path][aspect] != other[path][aspect]:
+                        deduction += 0.5
+
+            factor = pow(4, - (depth + 1)) * deduction
             score = score - factor
         return max(score, 0.0)
 

@@ -1,14 +1,11 @@
 import pytest
-from webleaf import Leaf
+from webleaf import Leaf, Neighbour
 from lxml import etree
 import os
 
-
 dirname = os.path.dirname(__file__)
 
-
 EXAMPLE_PATH = os.path.join(dirname, "example.html")
-
 
 example = open(EXAMPLE_PATH).read()
 root = etree.HTML(example)
@@ -18,12 +15,18 @@ tree = etree.ElementTree(root)
 def test_leaf_from_element():
     link = tree.findall(".//p")[0]
     leaf = Leaf().from_element(tree, link, 3)
-    assert leaf == {'./../../h3': 'Title 1'}
+    assert leaf == {'.': {'path': '.', 'tag': 'p',
+                          'text': 'Description for card 1. This card provides details about the first item.'},
+                    './../../h3': {'path': './../../h3', 'tag': 'h3', 'text': 'Title 1'}}
 
 
 def test_leaf_from_dict():
-    leaf = Leaf({"./../h3": "hello", "./../div[2]/a": "world", "./../div[2]/span": "ya"})
-    assert leaf == {'./../div[2]/a': "world", './../div[2]/span': 'ya', './../h3': 'hello'}
+    dictionary = {'.': {'path': '.',
+                        'tag': 'p',
+                        'text': 'Description for card 1. This card provides details about the '
+                                'first item.'}}
+    leaf = Leaf(dictionary)
+    assert leaf == dictionary
 
 
 def test_leaf_equal():
@@ -51,12 +54,25 @@ def test_leaf_unique():
 
 
 depths = [
-    (1, {}),
-    (2, {}),
-    (3, {'./../../h3': 'Title 1'}),
-    (4, {'./../../div[2]/a': 'Learn more', './../../div[2]/span': 'June 10, 2024', './../../h3': 'Title 1'}),
-    (5, {'./../../../div[2]/h3': 'Title 2', './../../../div[3]/h3': 'Title 2', './../../div[2]/a': 'Learn more',
-         './../../div[2]/span': 'June 10, 2024', './../../h3': 'Title 1'}),
+    (1, {'.': {'path': '.', 'tag': 'p',
+               'text': 'Description for card 1. This card provides details about the first item.'}}),
+    (2, {'.': {'path': '.', 'tag': 'p',
+               'text': 'Description for card 1. This card provides details about the first item.'}}),
+    (3, {'.': {'path': '.', 'tag': 'p',
+               'text': 'Description for card 1. This card provides details about the first item.'},
+         './../../h3': {'path': './../../h3', 'tag': 'h3', 'text': 'Title 1'}}),
+    (4, {'.': {'path': '.', 'tag': 'p',
+               'text': 'Description for card 1. This card provides details about the first item.'},
+         './../../div[2]/a': {'path': './../../div[2]/a', 'tag': 'a', 'text': 'Learn more'},
+         './../../div[2]/span': {'path': './../../div[2]/span','tag': 'span', 'text': 'June 10, 2024'},
+         './../../h3': {'path': './../../h3', 'tag': 'h3', 'text': 'Title 1'}}),
+    (5, {'.': {'path': '.', 'tag': 'p',
+               'text': 'Description for card 1. This card provides details about the first item.'},
+         './../../../div[2]/h3': {'path': './../../../div[2]/h3', 'tag': 'h3', 'text': 'Title 2'},
+         './../../../div[3]/h3': {'path': './../../../div[3]/h3','tag': 'h3', 'text': 'Title 2'},
+         './../../div[2]/a': {'path': './../../div[2]/a','tag': 'a', 'text': 'Learn more'},
+         './../../div[2]/span': {'path': './../../div[2]/span', 'tag': 'span', 'text': 'June 10, 2024'},
+         './../../h3': {'path': './../../h3', 'tag': 'h3', 'text': 'Title 1'}}),
 ]
 
 

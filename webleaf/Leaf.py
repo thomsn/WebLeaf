@@ -11,9 +11,7 @@ class Leaf(dict[str, Neighbour]):
 
     def from_element(self, tree, element: Element, depth: int = 5):
         """
-        Create a Leaf object from a LXML element to a specified depth. This walks the tree in a breadth first
-        search. The path is encoded with 0 representing up in the tree; 1,2,3 ... representing the 1-indexed index of an
-        element.
+        Create a Leaf object from a LXML element to a specified depth.
         :param tree: the lxml etree
         :param element: the lxml element
         :param depth: the integer depth to traverse within the tree
@@ -34,6 +32,7 @@ class Leaf(dict[str, Neighbour]):
             else:  # going down
                 for child in tag:
                     stack.append((child, path + [os.path.basename(tree.getpath(child))]))
+
             if tag.text and tag.tag != "script" and tag.text.strip():
                 str_hash = "/".join(str(edge) for edge in path)
                 self[str_hash] = Neighbour(path=str_hash, tag=tag.tag, text=tag.text)
@@ -77,18 +76,20 @@ class Leaf(dict[str, Neighbour]):
 
         for path in paths:
             depth = path.count("/")
-            deduction = 0.0
+            modification = 0.0
             if bool(path in self) != bool(path in other):
-                deduction += 1.0
+                modification -= 1.0
 
             if path in self and path in other:
                 for aspect in ['tag', 'text']:
-                    if self[path][aspect] != other[path][aspect]:
-                        deduction += 0.5
+                    if self[path][aspect] == other[path][aspect]:
+                        modification += 0.5
+                    else:
+                        modification -= 0.5
 
-            factor = pow(4, - (depth + 1)) * deduction
-            score = score - factor
-        return max(score, 0.0)
+            factor = pow(1.5, - depth) * modification
+            score = score + factor
+        return score
 
     def __str__(self):
         """

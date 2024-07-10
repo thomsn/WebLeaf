@@ -1,6 +1,7 @@
 from .Leaf import Leaf
+import random
 
-NUM_LEAVES_TO_COMPARE = 16
+NUM_LEAVES_TO_COMPARE = 8
 
 
 class Branch(list[Leaf]):
@@ -14,12 +15,21 @@ class Branch(list[Leaf]):
 
     def compare(self, other):
         if not (len(self) * 0.3 < len(other) < len(self) * 1.7):
-            return [0.0] * len(self)
+            return 0.0
 
         leaves_compare = []
-        for leaf in self:
-            # todo: do the other direction comparison as well
-
+        for leaf in self.sample(NUM_LEAVES_TO_COMPARE):
             difference = max(map(leaf.compare, other))
             leaves_compare.append(difference)
-        return leaves_compare
+
+        for leaf in other.sample(NUM_LEAVES_TO_COMPARE):
+            difference = max(map(leaf.compare, self))
+            leaves_compare.append(difference)
+
+        return sum(leaves_compare) / len(leaves_compare)
+
+    def sample(self, num):
+        if len(self) <= num:
+            return self
+        else:
+            return random.sample(self, num)

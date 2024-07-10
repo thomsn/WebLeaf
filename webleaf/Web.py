@@ -77,9 +77,9 @@ class Web:
         return branches
 
     def compare(self, branches):
-        p = Pool(11)
+        # p = Pool(11)
         self.branches = branches
-        return p.map(self.compare_branches, branches)
+        return map(self.compare_branches, branches)
 
     def compare_branches(self, branch):
         branch_diffs = []
@@ -100,11 +100,9 @@ class Web:
                     continue
                 if j in paired:
                     continue
-                if other_div:
-                    match = sum(other_div) / len(other_div)
-                    if match > THRESHOLD:
-                        new_cluster.append(j)
-                        paired.add(j)
+                if other_div > THRESHOLD:
+                    new_cluster.append(j)
+                    paired.add(j)
             clusters.append(new_cluster)
             paired.add(i)
 

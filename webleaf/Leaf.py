@@ -6,12 +6,27 @@ import os
 from webleaf.Neighbour import Neighbour
 
 
-class Leaf(dict[str, Neighbour]):
+class Leaf:
     """An HTML element as described by a dict of paths to its closest neighbors"""
 
-    def from_element(self, tree, element: Element, depth: int = 5):
+    def __init__(self):
+        self.neighbours = set()
+        self.branches = set()
+        self.hash = hash("none")
+
+    def __repr__(self):
+        return f"Leaf(neighbours={list(self.neighbours)})"
+
+    def __hash__(self):
+        return self.hash
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
+    def from_element(self, tree, element: Element, depth: int = 4, breadth: int = 8):
         """
         Create a Leaf object from a LXML element to a specified depth.
+        :param breadth: the amount of siblings to explore
         :param tree: the lxml etree
         :param element: the lxml element
         :param depth: the integer depth to traverse within the tree
@@ -26,16 +41,18 @@ class Leaf(dict[str, Neighbour]):
             parent = tag.getparent()
             if parent is not None and going_up:
                 stack.append((parent, path + [".."]))
-                for sibling in parent:
+                for sibling in parent[:breadth]:
                     if tree.getpath(sibling) != tree.getpath(tag):
                         stack.append((sibling, path + ['..', os.path.basename(tree.getpath(sibling))]))
             else:  # going down
-                for child in tag:
+                for child in tag[:breadth]:
                     stack.append((child, path + [os.path.basename(tree.getpath(child))]))
 
             if tag.text and tag.tag != "script" and tag.text.strip():
                 str_hash = "/".join(str(edge) for edge in path)
-                self[str_hash] = Neighbour(path=str_hash, tag=tag.tag, text=tag.text)
+                self.neighbours.add(Neighbour(depth=len(path), path=str_hash, tag=tag.tag, text=tag.text))
+                self.neighbours.add(Neighbour(depth=len(path), path=str_hash, tag=tag.tag, text=tag.text, notext=True))
+        self.hash = hash(str(list(self.neighbours)))
         return self
 
     def from_xpath(self, tree, xpath: str, depth: int = 5):
@@ -63,54 +80,10 @@ class Leaf(dict[str, Neighbour]):
         assert elements, f"no element found for css {css}"
         return self.from_element(tree, elements[0], depth)
 
-    def compare(self, other) -> float:
-        """
-        Compare two Leaves and produce a score. Closer neighbors are weighted exponentially more than further neighbors.
-        Values that are different are slightly less
-        :param other: the Leaf to compare to
-        :return: a score between 1.0 and 0.0 representing how similar the Leaves are.
-        """
+    def find_closest_leaves(self):
+        close = {}
+        for neighbour in self.neighbours:
+            for other_leaf in neighbour.leaves:
+                close[other_leaf] += 1
+        return sorted(close)
 
-        paths = set(self.keys()).union(set(other.keys()))
-        score = 1.0
-
-        for path in paths:
-            depth = path.count("/")
-            modification = 0.0
-            if bool(path in self) != bool(path in other):
-                modification -= 1.0
-
-            if path in self and path in other:
-                for aspect in ['tag', 'text']:
-                    if self[path][aspect] == other[path][aspect]:
-                        modification += 0.5
-                    else:
-                        modification -= 0.5
-
-            factor = pow(1.5, - depth) * modification
-            score = score + factor
-        return score
-
-    def __str__(self):
-        """
-        Serialize a Leaf to a string.
-        :return: String representation of the Leaf()
-        """
-        return json.dumps(self)
-
-    def find(self, tree, depth: int = 5):
-        """
-        Inefficient find matching leaves.
-        :param tree: the lxml etree
-        :param depth: the depth to construct leaves for
-        :return: lxml element iterator
-        """
-        other_elements = []
-        for element in tree.iter():
-            other_leaf = Leaf().from_element(tree, element, depth)
-            compare = self.compare(other_leaf)
-            if element.text:
-                other_elements.append((compare, element, other_leaf))
-
-        for compare, element, leaf in sorted(other_elements, key=lambda x: x[0], reverse=True):
-            yield element

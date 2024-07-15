@@ -13,6 +13,7 @@ class Leaf:
         self.neighbours = set()
         self.branches = set()
         self.hash = hash("none")
+        self.text = ""
 
     def __repr__(self):
         return f"Leaf(neighbours={list(self.neighbours)})"
@@ -32,6 +33,7 @@ class Leaf:
         :param depth: the integer depth to traverse within the tree
         :return: a Leaf()
         """
+        self.text = element.text
         stack = [(element, ["."])]
         while len(stack):
             tag, path = stack.pop(0)

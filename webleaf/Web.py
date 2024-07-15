@@ -4,12 +4,13 @@ import random
 from lxml import etree
 
 from . import Leaf
+from .Bundle import Bundle
 from .Branch import Branch
 import csv
 from multiprocessing import Pool
 
 MAX_DEPTH = 20
-DEPTH = 4
+DEPTH = 7
 THRESHOLD = 0.7
 NUM_LEAVES = 16
 
@@ -78,7 +79,7 @@ class Web:
             for i, element in enumerate(divs):
                 branch = Branch(f"{html_number} {tree.getpath(element)}")
                 for sub in element.iter():
-                    if sub.text:
+                    if sub.text and len(sub.text.strip()) and sub.tag not in ["script", "style"]:
                         leaf = Leaf().from_element(tree, sub, DEPTH)
                         if leaf not in leaves:
                             leaves[leaf] = leaf
@@ -88,6 +89,7 @@ class Web:
                                 neighbours[neighbour] = neighbour
                             neighbours[neighbour].leaves.add(leaf)
                         branch.leaves.add(leaf)
+                        branch.text_values[leaf] = sub.text
                 if len(branch.leaves):
                     branches[branch] = branch
         return branches, leaves, neighbours
@@ -118,41 +120,49 @@ class Web:
             summed = {b: sum(max(close[b][l].values()) for l in close[b]) for b in close}
 
             other_branches = list(sorted(summed.items(), key=lambda x: x[1], reverse=True))
-            new_cluster = [branch]
+            new_cluster = Bundle()
+            new_cluster.branches.append(branch)
             for other_branch, score in other_branches:
                 if other_branch in paired:
                     continue
                 if score > THRESHOLD:
-                    new_cluster.append(other_branch)
+                    new_cluster.branches.append(other_branch)
                     paired.add(other_branch)
             paired.add(branch)
             clusters.append(new_cluster)
 
         bundles = []
-        for cluster in sorted(clusters, key=lambda x: len(x) * len(branches[x[0]].leaves), reverse=True):
-            if len(cluster) * len(branches[cluster[0]].leaves) < 8:
+        for bundle in sorted(clusters, key=lambda x: len(x.branches) * len(branches[x.branches[0]].leaves), reverse=True):
+            if len(bundle.branches) * len(branches[bundle.branches[0]].leaves) < 8:
                 break
-            bundles.append(cluster)
+            bundles.append(bundle)
         return bundles
 
     def export(self, bundles, branches, leaves, neighbours):
         for i, bundle in enumerate(bundles):
-            first_leaves = branches[bundle[0]].leaves
+            first_leaves = branches[bundle.branches[0]].leaves
+            for leaf in first_leaves:
+                print(branches[bundle.branches[0]].text_values[leaf])
             rows = []
-            for branch in bundle:
+            for b, branch in enumerate(bundle.branches):
+                print(f"branch {b+1} / {len(bundle.branches)}")
                 row = []
-                other_leaves = branches[branch].leaves
-                for leaf in first_leaves.leaves:
-
-                    best_match = other_leaves[0]
-                    best_score = leaf.compare(best_match)
-                    for other_leaf in other_leaves:
-                        score = leaf.compare(other_leaf)
-                        if score > best_score:
-                            best_match = other_leaf
-                            best_score = score
-                    row.append(best_match['.']['text'])
+                for l, first_leaf in enumerate(first_leaves):
+                    print(f"leaf {l}")
+                    leaf_options = {}
+                    for neighbour in leaves[first_leaf].neighbours:
+                        for other_leaf in neighbours[neighbour].leaves:
+                            if branch in leaves[other_leaf].branches:
+                                if other_leaf not in leaf_options:
+                                    leaf_options[other_leaf] = 0
+                                leaf_options[other_leaf] += 1
+                    best_leaf = sorted(leaf_options, key=lambda x: leaf_options[x], reverse=True)
+                    if len(best_leaf):
+                        row.append(branch.text_values[best_leaf[0]])
+                    else:
+                        row.append("")
                 rows.append(row)
+
             cleaned_rows = []
             changed = [False] * len(rows[0])
             for row in rows:

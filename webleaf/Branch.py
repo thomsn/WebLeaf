@@ -2,11 +2,14 @@ from .Leaf import Leaf
 
 
 class Branch:
-    def __init__(self, path):
-        self.hash = hash(path)
+    def __init__(self, path, element, tree, html_index=0):
+        self.hash = hash(f"{html_index} {path}")
         self.path = path
         self.leaves = set()
         self.text_values = {}
+        self.element = element
+        self.tree = tree
+        self.html_index = html_index
 
     def __hash__(self):
         return self.hash

@@ -1,4 +1,6 @@
+import json
 import math
+import os
 import random
 
 from lxml import etree
@@ -10,8 +12,11 @@ import csv
 from .LeafPile import LeafPile
 from multiprocessing import Pool
 
+from openai import OpenAI
+
 MAX_DEPTH = 20
 DEPTH = 7
+
 
 
 class Web:
@@ -83,9 +88,8 @@ class Web:
     def bundle(self, pile):
         return pile.bundle()
 
-    def export(self, bundles, pile):
+    def extract(self, bundles, pile):
         for i, bundle in enumerate(bundles):
-
             rows = pile.extract(bundle, DEPTH)
 
             cleaned_rows = []
@@ -103,6 +107,63 @@ class Web:
 
             if not len(cleaned_rows) or not len(cleaned_rows[0]):
                 continue
+            yield cleaned_rows
 
-            with open(f"cluster{i}.csv", "w+") as f:
-                csv.writer(f).writerows(cleaned_rows)
+    def label(self, sheets):
+        key_name = "OPENAI"
+        key = os.environ[key_name]
+        assert key, f"Please specify {key_name} environment variable to perform labeling"
+        client = OpenAI(api_key=key)
+
+        for sheet in sheets:
+            column_count = len(sheet[0])
+            CHUNK_SIZE = 16
+            MAX_CHARS = 100
+            column_names = []
+            column_importance = []
+            for chunk in range(math.ceil(column_count / CHUNK_SIZE)):
+                chunk_data = []
+                for row_i in range(3):
+                    chunk_data.append([text[:MAX_CHARS] for text in sheet[row_i][chunk*CHUNK_SIZE:(chunk+1)*CHUNK_SIZE]])
+                prompt = [{
+                    "role": "system",
+                    "content": "You are a spreadsheet expert. Your job is to label each column in this spreadsheet. "
+                               "Your output must be a JSON object with the key [column_labels] and the value "
+                               "of a list of column labels. Additionally, add the JSON object with key [column_importance] "
+                               "and the value of a list of integers with 1 = not important and 10 = very important."
+                },
+                    {
+                        "role": "user",
+                        "content": json.dumps(chunk_data)
+                    }
+                ]
+                response = json.loads(client.chat.completions.create(
+                    messages=prompt,
+                    model="gpt-4-1106-preview",
+                    response_format={"type": "json_object"},
+                    max_tokens=1000
+                ).choices[0].message.content)
+                chunk_column_names = response["column_labels"]
+                chunk_column_importance = [int(imp) for imp in response["column_importance"]]
+                assert len(chunk_column_names) == len(chunk_data[0])
+                assert len(chunk_column_importance) == len(chunk_data[0])
+                column_names.extend(chunk_column_names)
+                column_importance.extend(chunk_column_importance)
+
+            sheet.insert(0, column_names)
+            # Create a list of (importance, column index) pairs
+            importance_with_index = list(enumerate(column_importance))
+
+            # Sort the list of (importance, column index) pairs by importance
+            sorted_importance_with_index = sorted(importance_with_index, key=lambda x: x[1], reverse=True)
+
+            # Extract the column indices in the new order
+            sorted_indices = [index for index, _ in sorted_importance_with_index]
+
+            # Reorder the rows based on the sorted column indices
+            yield (f"some_name{len(column_names)}", [[row[i] for i in sorted_indices] for row in sheet])
+
+    def export(self, sheets):
+        for sheet_name, rows in sheets:
+            with open(f"{sheet_name}.csv", "w+") as f:
+                csv.writer(f).writerows(rows)

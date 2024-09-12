@@ -1,6 +1,6 @@
 from torch_geometric.nn import GAE, GCN2Conv
 import torch.nn.functional as F
-from .TagModel import TagEmbeddingModel, html_tags, TAG_DIMS
+from .TagModel import TagEmbeddingModel, exclude_html_tags, html_tags, TAG_DIMS
 from .TextModel import TextEmbeddingModel, TEXT_DIMS
 from torch_geometric.utils import subgraph
 from torch.nn import Linear
@@ -79,6 +79,7 @@ class WebGraphAutoEncoder:
         etree.strip_tags(root, *formatting_tags)
 
         stack = [(root, 0)]
+        exclude_tag_lookup = set(exclude_html_tags)
         tag_lookup = set(html_tags)
         assert tree, "Could not create tree"
 
@@ -86,7 +87,6 @@ class WebGraphAutoEncoder:
         texts = [""]
         tags = [root.tag]
         edge_index = []
-        masks = [False]
         paths = [tree.getpath(root)]
         while stack:
             element, parent_id = stack.pop(0)
@@ -98,11 +98,13 @@ class WebGraphAutoEncoder:
                 while child.tag == "div" and len(child) == 1:
                     child = child[0]
 
-                if child.tag in tag_lookup:
-                    tags.append(child.tag)
+                if child.tag not in exclude_tag_lookup:
+                    tag = child.tag
+                    if tag not in tag_lookup:
+                        tag = "div"
+                    tags.append(tag)
                     text = self.extract_text(child)[:256]
                     texts.append(text)
-                    masks.append(bool(text))
                     paths.append(tree.getpath(child))
                     i += 1
                     edge_index.append([parent_id, i])
@@ -114,16 +116,14 @@ class WebGraphAutoEncoder:
         for i in range(len(text_embeddings)):
             x.append(torch.concatenate((torch.from_numpy(text_embeddings[i]), tag_embeddings[i])))
 
-        input_masks = torch.tensor(masks, dtype=torch.bool)
         input_features = torch.stack(x).to(self.device)
         input_edge_index = torch.tensor(edge_index, dtype=torch.int64).permute(1, 0)
-        subset_edge_index, _ = subgraph(input_masks, input_edge_index)
-        subset_edge_index = subset_edge_index.to(self.device)
+        input_edge_index = input_edge_index.to(self.device)
 
         with torch.no_grad():
-            features = self.model.encode(input_features, edge_index=subset_edge_index).cpu().detach()
+            features = self.model.encode(input_features, edge_index=input_edge_index).cpu().detach()
         torch.cuda.empty_cache()
-        del input_features, subset_edge_index
+        del input_features, input_edge_index
         return features, paths
 
     def clean_text(self, text):

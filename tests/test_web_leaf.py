@@ -68,3 +68,9 @@ def test_leaf_find_n():
                  "/html/body/div/div/div[2]/div[1]/p",
                  "/html/body/div/div/div[3]/div[1]/span"]:
         assert path in paths
+
+
+def test_custom_tags():
+    web = Web(example)
+    custom_tag_button = web.leaf(xpath="/html/body/div/div/div[4]/customtag/button")
+    assert custom_tag_button

@@ -21,6 +21,10 @@ html_tags = [
     'var', 'video', 'wbr'
 ]
 
+exclude_html_tags = [
+    "script", "meta", "style", "svg",
+]
+
 
 class NormalizedEmbedding(nn.Module):
     """

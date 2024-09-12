@@ -1,7 +1,7 @@
 [project]
 name = "webleaf"
 
-version = "0.3.10"
+version = "0.3.11"
 
 description = "HTML DOM Tree Leaf Structure Identification Package"
 

@@ -120,8 +120,10 @@ class WebGraphAutoEncoder:
         subset_edge_index, _ = subgraph(input_masks, input_edge_index)
         subset_edge_index = subset_edge_index.to(self.device)
 
-        features = self.model.encode(input_features, edge_index=subset_edge_index)
-
+        with torch.no_grad():
+            features = self.model.encode(input_features, edge_index=subset_edge_index).cpu().detach()
+        torch.cuda.empty_cache()
+        del input_features, subset_edge_index
         return features, paths
 
     def clean_text(self, text):

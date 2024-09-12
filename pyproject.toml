@@ -1,7 +1,7 @@
 [project]
 name = "webleaf"
 
-version = "0.3.3"
+version = "0.3.4"
 
 description = "HTML DOM Tree Leaf Structure Identification Package"
 
@@ -36,3 +36,6 @@ keywords = [
 homepage = "https://thomsn.github.io/WebLeaf/webleaf.html"
 repository = "https://github.com/thomsn/WebLeaf"
 documentation = "https://thomsn.github.io/WebLeaf/webleaf.html"
+
+[tool.setuptools]
+py-modules = ["webleaf"]

@@ -1,7 +1,7 @@
 [project]
 name = "webleaf"
 
-version = "0.2.3"
+version = "0.3.1"
 
 description = "HTML DOM Tree Leaf Structure Identification Package"
 
@@ -9,7 +9,9 @@ authors = [{name = "Matthew Thomson", email = "m7homson@gmail.com"}]
 
 dependencies = [
     "lxml==5.2.2",
-    "cssselect==1.2.0"
+    "cssselect==1.2.0",
+    "torch-geometric==2.5.3",
+    "torch==2.2.2"
 ]
 
 license = {file = "LICENSE"}

@@ -1,115 +1,71 @@
-import json
-
-from lxml.html import Element
-from lxml.cssselect import CSSSelector
-import os
-from webleaf.Neighbour import Neighbour
+import torch
+from torch.nn.functional import cosine_similarity
 
 
-class Leaf(dict[str, Neighbour]):
-    """An HTML element as described by a dict of paths to its closest neighbors"""
+class Leaf(torch.Tensor):
+    """
+    The Leaf class is a custom subclass of PyTorch's torch.Tensor, designed to represent an HTML element
+    with an associated feature embedding. It includes additional methods to calculate similarity and distance
+    between elements, as well as a boolean check for the existence of the tensor.
 
-    def from_element(self, tree, element: Element, depth: int = 5):
+    Methods:
+    --------
+    similarity(other):
+        Calculates the cosine similarity between this Leaf object and another.
+
+    mdist(other):
+        Calculates the Manhattan distance (L1 distance) between this Leaf object and another.
+
+    __bool__():
+        Returns whether the Leaf tensor is non-empty (contains elements).
+    """
+    def similarity(self, other):
         """
-        Create a Leaf object from a LXML element to a specified depth. This walks the tree in a breadth first
-        search. The path is encoded with 0 representing up in the tree; 1,2,3 ... representing the 1-indexed index of an
-        element.
-        :param tree: the lxml etree
-        :param element: the lxml element
-        :param depth: the integer depth to traverse within the tree
-        :return: a Leaf()
-        """
-        stack = [(element, ["."])]
-        while len(stack):
-            tag, path = stack.pop(0)
-            if len(path) - 1 > depth:
-                continue
-            going_up = path[-1] in [".", ".."]
-            parent = tag.getparent()
-            if parent is not None and going_up:
-                stack.append((parent, path + [".."]))
-                for sibling in parent:
-                    if tree.getpath(sibling) != tree.getpath(tag):
-                        stack.append((sibling, path + ['..', os.path.basename(tree.getpath(sibling))]))
-            else:  # going down
-                for child in tag:
-                    stack.append((child, path + [os.path.basename(tree.getpath(child))]))
-            if tag.text and tag.tag != "script" and tag.text.strip():
-                str_hash = "/".join(str(edge) for edge in path)
-                self[str_hash] = Neighbour(path=str_hash, tag=tag.tag, text=tag.text)
-        return self
+        Computes the cosine similarity between the current Leaf tensor and another Leaf tensor.
 
-    def from_xpath(self, tree, xpath: str, depth: int = 5):
-        """
-        Create a Leaf from a XPath.
-        :param tree: the lxml etree
-        :param xpath: the xpath string
-        :param depth: integer depth to build the Leaf,
-        :return: the Leaf.
-        """
-        elements = tree.xpath(xpath)
-        assert elements, f"no element found for xpath {xpath}"
-        return self.from_element(tree, elements[0], depth)
+        Cosine similarity measures the cosine of the angle between two vectors, giving a value between -1 and 1,
+        where 1 indicates perfect similarity, 0 indicates orthogonality, and -1 indicates perfect dissimilarity.
 
-    def from_css(self, tree, css, depth: int = 5):
-        """
-        Create a Leaf from a CSS selector.
-        :param tree: the lxml etree
-        :param css: the css string
-        :param depth: integer depth to build the Leaf,
-        :return: the Leaf.
-        """
-        xpath = CSSSelector(css).path
-        elements = tree.xpath(xpath)
-        assert elements, f"no element found for css {css}"
-        return self.from_element(tree, elements[0], depth)
+        Parameters:
+        -----------
+        other : Leaf
+            The other Leaf tensor to compare with.
 
-    def compare(self, other) -> float:
+        Returns:
+        --------
+        float
+            A similarity score between -1 and 1, where 1 indicates high similarity.
         """
-        Compare two Leaves and produce a score. Closer neighbors are weighted exponentially more than further neighbors.
-        Values that are different are slightly less
-        :param other: the Leaf to compare to
-        :return: a score between 1.0 and 0.0 representing how similar the Leaves are.
+        return cosine_similarity(self.unsqueeze(0), other.unsqueeze(0)).detach().item()
+
+    def mdist(self, other):
         """
+        Computes the Manhattan distance (L1 distance) between the current Leaf tensor and another Leaf tensor.
 
-        paths = set(self.keys()).union(set(other.keys()))
-        score = 1.0
+        Manhattan distance is the sum of the absolute differences between corresponding elements of two vectors.
+        It is a measure of how different two vectors are, with higher values indicating greater dissimilarity.
 
-        for path in paths:
-            depth = path.count("/")
-            deduction = 0.0
-            if bool(path in self) != bool(path in other):
-                deduction += 1.0
+        Parameters:
+        -----------
+        other : Leaf
+            The other Leaf tensor to compare with.
 
-            if path in self and path in other:
-                for aspect in ['tag', 'text']:
-                    if self[path][aspect] != other[path][aspect]:
-                        deduction += 0.5
-
-            factor = pow(4, - (depth + 1)) * deduction
-            score = score - factor
-        return max(score, 0.0)
-
-    def __str__(self):
+        Returns:
+        --------
+        float
+            The Manhattan distance between the two tensors.
         """
-        Serialize a Leaf to a string.
-        :return: String representation of the Leaf()
-        """
-        return json.dumps(self)
+        return torch.sum(torch.abs(self - other)).detach().item()
 
-    def find(self, tree, depth: int = 5):
+    def __bool__(self):
         """
-        Inefficient find matching leaves.
-        :param tree: the lxml etree
-        :param depth: the depth to construct leaves for
-        :return: lxml element iterator
-        """
-        other_elements = []
-        for element in tree.iter():
-            other_leaf = Leaf().from_element(tree, element, depth)
-            compare = self.compare(other_leaf)
-            if element.text:
-                other_elements.append((compare, element, other_leaf))
+        Checks whether the Leaf tensor is non-empty (i.e., contains elements).
 
-        for compare, element, leaf in sorted(other_elements, key=lambda x: x[0], reverse=True):
-            yield element
+        This method allows Leaf objects to be used in boolean contexts such as conditions.
+
+        Returns:
+        --------
+        bool
+            True if the Leaf tensor has more than zero elements, False otherwise.
+        """
+        return self.size().numel() > 0

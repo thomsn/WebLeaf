@@ -2,6 +2,7 @@ from torch_geometric.nn import GAE, GCN2Conv
 import torch.nn.functional as F
 from .TagModel import TagEmbeddingModel, html_tags, TAG_DIMS
 from .TextModel import TextEmbeddingModel, TEXT_DIMS
+from torch_geometric.utils import subgraph
 from torch.nn import Linear
 import os
 from lxml import etree
@@ -64,10 +65,10 @@ class WebGraphAutoEncoder:
         self.model = GAE(encoder)
 
         assert os.path.exists(MODEL_PATH), f"Could not find WebLeaf model at [{MODEL_PATH}]"
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model.load_state_dict(torch.load(MODEL_PATH, map_location=self.device))
         self.model.eval()
-        self.model = self.model.to(device)
+        self.model = self.model.to(self.device)
 
     def extract(self, tree):
         root = tree.getroot()
@@ -113,8 +114,13 @@ class WebGraphAutoEncoder:
         for i in range(len(text_embeddings)):
             x.append(torch.concatenate((torch.from_numpy(text_embeddings[i]), tag_embeddings[i])))
 
-        features = self.model.encode(torch.stack(x),
-                                     edge_index=torch.tensor(edge_index, dtype=torch.int64).permute(1, 0))
+        input_masks = torch.tensor(masks, dtype=torch.bool)
+        input_features = torch.stack(x).to(self.device)
+        input_edge_index = torch.tensor(edge_index, dtype=torch.int64).permute(1, 0)
+        subset_edge_index, _ = subgraph(input_masks, input_edge_index)
+        subset_edge_index = subset_edge_index.to(self.device)
+
+        features = self.model.encode(input_features, edge_index=subset_edge_index)
 
         return features, paths
 

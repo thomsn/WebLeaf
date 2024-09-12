@@ -64,10 +64,9 @@ class WebGraphAutoEncoder:
         self.model = GAE(encoder)
 
         assert os.path.exists(MODEL_PATH), f"Could not find WebLeaf model at [{MODEL_PATH}]"
-
-        self.model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('gpu' if torch.cuda.is_available() else 'cpu')))
-        self.model.eval()
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+        self.model.eval()
         self.model = self.model.to(device)
 
     def extract(self, tree):

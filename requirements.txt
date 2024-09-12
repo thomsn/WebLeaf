@@ -2,3 +2,4 @@ lxml==5.2.2
 cssselect==1.2.0
 torch-geometric==2.5.3
 torch==2.2.2
+sentence-transformers==3.1.0

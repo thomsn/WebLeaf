@@ -29,7 +29,8 @@ class TextEmbeddingModel:
         NLTK's 'punkt' tokenizer is downloaded to tokenize input text into sentences, and the SentenceTransformer model
         'multi-qa-MiniLM-L6-cos-v1' is loaded to generate embeddings.
         """
-        nltk.download('punkt')
+        for resource in ["punkt", "punkt_tab"]:
+            nltk.download(resource)
         self.model = SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1')
 
     def get_text_embeddings(self, text):

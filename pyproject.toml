@@ -13,7 +13,8 @@ dependencies = [
     "torch-geometric==2.5.3",
     "torch==2.2.2",
     "sentence-transformers==3.0.1",
-    "nltk==3.8.1"
+    "nltk==3.8.1",
+    "numpy==1.26.4"
 ]
 
 license = {file = "LICENSE"}

@@ -42,12 +42,12 @@ documentation = "https://thomsn.github.io/WebLeaf/webleaf.html"
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 exclude = ["notebooks"]
-
 
 [tool.setuptools.package-data]
 webleaf = ["model/tag_embeddings.torch", "model/product_page_model_4_80.torch"]
 
-[tool.setuptools.include-package-data]
-include = true

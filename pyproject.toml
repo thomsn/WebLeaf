@@ -38,5 +38,19 @@ homepage = "https://thomsn.github.io/WebLeaf/webleaf.html"
 repository = "https://github.com/thomsn/WebLeaf"
 documentation = "https://thomsn.github.io/WebLeaf/webleaf.html"
 
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["webleaf"]
+
 [tool.setuptools.packages.find]
 exclude = ["notebooks"]
+
+
+[tool.setuptools.package-data]
+webleaf = ["model/tag_embeddings.torch", "model/product_page_model_4_80.torch"]
+
+[tool.setuptools.include-package-data]
+include = true

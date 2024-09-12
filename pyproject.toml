@@ -1,20 +1,20 @@
 [project]
 name = "webleaf"
 
-version = "0.3.6"
+version = "0.3.7"
 
 description = "HTML DOM Tree Leaf Structure Identification Package"
 
 authors = [{name = "Matthew Thomson", email = "m7homson@gmail.com"}]
 
 dependencies = [
-    "lxml==5.2.2",
-    "cssselect==1.2.0",
-    "torch-geometric==2.5.3",
+    "lxml",
+    "cssselect",
+    "torch-geometric",
     "torch==2.2.2",
-    "sentence-transformers==3.0.1",
-    "nltk==3.8.1",
-    "numpy==1.26.4"
+    "sentence-transformers",
+    "nltk",
+    "numpy"
 ]
 
 license = {file = "LICENSE"}
